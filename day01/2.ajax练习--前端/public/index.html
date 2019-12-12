@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<title>三级联动</title>
+</head>
+<body>
+
+<select id="province">
+	<option>请选择省份</option>
+</select> 省
+
+<select id="city">
+	<option>请选择市</option>
+</select> 市
+
+<select id="county">
+	<option>请选择区(县)</option>
+</select> 区(县)
+
+<script type="text/javascript" src="./js/jquery-1.12.4.js"></script>
+<script type="text/javascript">
+  
+  //获取要操作的DOM
+  const $province = $('#province')
+  const $city = $('#city')
+  const $county = $('#county')
+
+  //页面自动执行函数
+  $(function () {
+    
+    //发送ajax请求获取全部省份信息
+    $.get('http://localhost:3000/getAllProvince',(result)=>{
+      if(result.state === 1){
+        const {data} = result
+        //成功的逻辑
+        let html = ''
+        data.forEach((item)=>{
+          html += `<option value="${item.province}">${item.name}</option>`
+        })
+        $province.append(html)
+      }else{
+        alert(result.data)
+      }
+    })
+    
+    //根据所选省份，请求该省份所有市信息
+    $province.change(function () {
+      //拿到当前省份编码
+      const province = this.value
+      $city.html('<option>请选择市</option>')
+      $.get(`http://localhost:3000/getCitiesByProCode?province=${province}`,(result)=>{
+        if(result.state === 1){
+          const {data} = result
+          //成功的逻辑
+          let html = ''
+          data.forEach((item)=>{
+            html += `<option value="${item.city}">${item.name}</option>`
+          })
+          $city.append(html)
+        }else{
+          alert(result.data)
+        }
+      })
+    })
+    
+    //根据所选省份、市请求当前市的区县信息
+    $city.change(function () {
+      //拿到当前省份编码
+      const province = $province.val()
+      const city = this.value
+      $county.html('<option>请选择市</option>')
+      $.get(`http://localhost:3000/getCountyByProAndCity?province=${province}&city=${city}`,(result)=>{
+        if(result.state === 1){
+          const {data} = result
+          //成功的逻辑
+          let html = ''
+          data.forEach((item)=>{
+            html += `<option value="${item.county}">${item.name}</option>`
+          })
+          $county.append(html)
+        }else{
+          alert(result.data)
+        }
+      })
+    })
+  })
+
+</script>
+</body>
+</html>
